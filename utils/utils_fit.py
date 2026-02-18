@@ -10,6 +10,7 @@ from loss.multitaskloss import HUncertainty
 from loss.mgda import MGDA
 from loss.pc_seg_loss import NllLoss
 import torch.nn.functional as F
+import wandb
 
 
 def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history_seg, loss_history_seg_wl, loss_history_seg_pc, eval_callback, eval_callback_seg, eval_callback_seg_w, eval_callback_seg_pc, optimizer, epoch, epoch_step,
@@ -37,6 +38,7 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
     model_train.train()
     for iteration, batch in enumerate(gen):
         if iteration >= epoch_step:
+            iteration -= 1
             break
 
         if is_radar_pc_seg:
@@ -192,6 +194,17 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                 'f score se': total_f_score / (iteration + 1),
                                 'f score wl': total_f_score_w / (iteration + 1),
                                 'lr': get_lr(optimizer)})
+                wandb.log({
+                    'epoch': epoch,
+                    'detection loss': total_loss_det / (iteration + 1),
+                    'se seg loss': total_loss_seg / (iteration + 1),
+                    'wl seg loss': total_loss_seg_w / (iteration + 1),
+                    'pc seg loss': total_loss_seg_pc / (iteration + 1),
+                    'total loss': total_loss / (iteration + 1),
+                    'f score se': total_f_score / (iteration + 1),
+                    'f score wl': total_f_score_w / (iteration + 1),
+                    'lr': get_lr(optimizer)
+                })
             else:
                 pbar.set_postfix(**{'detection loss': total_loss_det / (iteration + 1),
                                     'se seg loss': total_loss_seg / (iteration + 1),
@@ -200,6 +213,16 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                     'f score se': total_f_score / (iteration + 1),
                                     'f score wl': total_f_score_w / (iteration + 1),
                                     'lr': get_lr(optimizer)})
+                wandb.log({
+                    'epoch': epoch,
+                    'detection loss': total_loss_det / (iteration + 1),
+                    'se seg loss': total_loss_seg / (iteration + 1),
+                    'wl seg loss': total_loss_seg_w / (iteration + 1),
+                    'total loss': total_loss / (iteration + 1),
+                    'f score se': total_f_score / (iteration + 1),
+                    'f score wl': total_f_score_w / (iteration + 1),
+                    'lr': get_lr(optimizer)
+                })
             pbar.update(1)
 
     if local_rank == 0:
@@ -298,6 +321,16 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                     'f_score se': val_f_score / (iteration + 1),
                                     'f_score wl': val_f_score_w / (iteration + 1),
                                     })
+                wandb.log({
+                    'epoch': epoch,
+                    'detection val_loss': val_loss_det / (iteration + 1),
+                    'se seg val_loss': val_loss_seg / (iteration + 1),
+                    'wl seg val_loss': val_loss_seg_w / (iteration + 1),
+                    'pc seg val_loss': val_loss_seg_pc / (iteration + 1),
+                    'val loss': val_total_loss / (iteration + 1),
+                    'f_score se': val_f_score / (iteration + 1),
+                    'f_score wl': val_f_score_w / (iteration + 1)
+                })
             else:
                 pbar.set_postfix(**{'detection val_loss': val_loss_det / (iteration + 1),
                                     'se seg val_loss': val_loss_seg / (iteration + 1),
@@ -306,6 +339,15 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                     'f_score se': val_f_score / (iteration + 1),
                                     'f_score wl': val_f_score_w / (iteration + 1),
                                     })
+                wandb.log({
+                    'epoch': epoch,
+                    'detection val_loss': val_loss_det / (iteration + 1),
+                    'se seg val_loss': val_loss_seg / (iteration + 1),
+                    'wl seg val_loss': val_loss_seg_w / (iteration + 1),
+                    'val loss': val_total_loss / (iteration + 1),
+                    'f_score se': val_f_score / (iteration + 1),
+                    'f_score wl': val_f_score_w / (iteration + 1)
+                })
             pbar.update(1)
 
     if local_rank == 0:
@@ -348,14 +390,14 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
             save_state_dict = model.state_dict()
 
         if is_radar_pc_seg:
-            if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
-                torch.save(save_state_dict, os.path.join(save_dir,
-                                                         "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f-seg_pc_val_loss%.3f.pth" % (
-                                                             epoch + 1, val_total_loss / epoch_step,
-                                                             val_loss_det / epoch_step_val,
-                                                             val_loss_seg / epoch_step_val,
-                                                             val_loss_seg_w / epoch_step_val,
-                                                             val_loss_seg_pc / epoch_step_val)))
+            # if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
+            #     torch.save(save_state_dict, os.path.join(save_dir,
+            #                                              "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f-seg_pc_val_loss%.3f.pth" % (
+            #                                                  epoch + 1, val_total_loss / epoch_step,
+            #                                                  val_loss_det / epoch_step_val,
+            #                                                  val_loss_seg / epoch_step_val,
+            #                                                  val_loss_seg_w / epoch_step_val,
+            #                                                  val_loss_seg_pc / epoch_step_val)))
 
             if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= min(loss_history.val_loss) + min(
                     loss_history_seg.val_loss):
@@ -363,13 +405,13 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                 torch.save(save_state_dict, os.path.join(save_dir, "best_epoch_weights.pth"))
 
         else:
-            if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
-                torch.save(save_state_dict, os.path.join(save_dir,
-                                                         "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f.pth" % (
-                                                             epoch + 1, val_total_loss / epoch_step,
-                                                             val_loss_det / epoch_step_val,
-                                                             val_loss_seg / epoch_step_val,
-                                                             val_loss_seg_w / epoch_step_val)))
+            # if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
+            #     torch.save(save_state_dict, os.path.join(save_dir,
+            #                                              "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f.pth" % (
+            #                                                  epoch + 1, val_total_loss / epoch_step,
+            #                                                  val_loss_det / epoch_step_val,
+            #                                                  val_loss_seg / epoch_step_val,
+            #                                                  val_loss_seg_w / epoch_step_val)))
 
             if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= min(loss_history.val_loss) + min(
                     loss_history_seg.val_loss):

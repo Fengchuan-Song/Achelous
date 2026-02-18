@@ -25,6 +25,7 @@ from utils_seg_line.callbacks import LossHistory as LossHistory_seg_line
 from utils_seg_pc.callbacks import LossHistory as LossHistory_seg_pc
 from utils_seg_pc.callbacks import EvalCallback as EvalCallback_seg_pc
 import argparse
+import wandb
 
 
 if __name__ == "__main__":
@@ -53,6 +54,11 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='E:/Big_Datasets/water_surface/benchmark_new/WaterScenes_new')
+    parser.add_argument('--wandb_path', type=str, default='../autodl-tmp/wandb', help='path of saving wandb files locally')
+    parser.add_argument('--wandb_name', type=str, default='Achelous-0',
+                        help='name of current training procedure of wandb')
+    parser.add_argument('--description', type=str, default='Origin version of Achelous++, training from scratch',
+                        help='version description of the being trained model')
 
     args = parser.parse_args()
 
@@ -304,10 +310,25 @@ if __name__ == "__main__":
     save_dir_seg_wl = 'logs_seg_line'
     save_dir_seg_pc = 'logs_seg_pc'
 
+    wandb.init(
+        project='Achelous++',
+        name=args.wandb_name,
+        dir=args.wandb_path,
+        config={
+            "model_description": args.description,
+            "learning_rate": args.lr_init,
+            "architecture": "Origin",
+            "dataset": "WaterSence",
+            "epochs": UnFreeze_Epoch,
+            "batch_size": args.bs
+        }
+    )
+
     # ======================================================================================= #
 
     # ------------------------------------------------------#
     #   设置用到的显卡
+    #   主线程的local_rank为0
     # ------------------------------------------------------#
     ngpus_per_node = torch.cuda.device_count()
     if distributed:
