@@ -155,7 +155,7 @@ class YoloDataset(Dataset):
         #   雷达特征读取
         # ------------------------------#
         radar_path = self.radar_root + '/' + id + '.npz'
-        radar_data = np.load(radar_path)['arr_0']
+        radar_data = np.load(radar_path, allow_pickle=True)['arr_0']
 
         line = annotation_line.split()
         # ------------------------------#
