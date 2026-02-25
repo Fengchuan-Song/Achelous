@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--focal", type=str, default="True")
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
-    parser.add_argument("--data_root", type=str, default='E:/Big_Datasets/water_surface/benchmark_new/WaterScenes_new')
+    parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
     parser.add_argument('--wandb_path', type=str, default='../autodl-tmp/wandb', help='path of saving wandb files locally')
     parser.add_argument('--wandb_name', type=str, default='Achelous-0',
                         help='name of current training procedure of wandb')
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     #   （二）此处设置评估参数较为保守，目的是加快评估速度。
     # ------------------------------------------------------------------#
     eval_flag = True
-    eval_period = 5
+    eval_period = 10
     # ------------------------------------------------------------------#
     #   num_workers     用于设置是否使用多线程读取数据
     #                   开启后会加快数据读取速度，但是会占用更多内存
@@ -242,12 +242,12 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     # 语义分割数据集路径
     # ------------------------------------------------------------------#
-    se_seg_path = args.data_root + "/semantic/SegmentationClass/SegmentationClass"
+    se_seg_path = args.data_root + "/semantic/SegmentationClass"
 
     # ------------------------------------------------------------------#
     # 水岸线分割数据集路径
     # ------------------------------------------------------------------#
-    wl_seg_path = args.data_root + "/waterline/SegmentationClassPNG/SegmentationClassPNG"
+    wl_seg_path = args.data_root + "/waterline/SegmentationClassPNG"
 
     # ------------------------------------------------------------------#
     # 是否需要训练毫米波雷达点云分割

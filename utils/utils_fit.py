@@ -29,7 +29,7 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
     val_f_score = 0
     val_f_score_w = 0
 
-    total_loss = 0
+    train_total_loss = 0
     val_total_loss = 0
 
     if local_rank == 0:
@@ -180,7 +180,7 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
         total_loss_seg_w += loss_seg_w.item()
         if is_radar_pc_seg:
             total_loss_seg_pc += loss_pc_seg.item()
-        total_loss += total_loss_det + total_loss_seg + total_loss_seg_w + total_loss_seg_pc
+        train_total_loss = total_loss_det + total_loss_seg + total_loss_seg_w + total_loss_seg_pc
         total_f_score += train_f_score.item()
         total_f_score_w += train_f_score_w.item()
 
@@ -190,39 +190,18 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                 'se seg loss': total_loss_seg / (iteration + 1),
                                 'wl seg loss': total_loss_seg_w / (iteration + 1),
                                 'pc seg loss': total_loss_seg_pc / (iteration + 1),
-                                'total loss': total_loss / (iteration + 1),
+                                'total loss': train_total_loss / (iteration + 1),
                                 'f score se': total_f_score / (iteration + 1),
                                 'f score wl': total_f_score_w / (iteration + 1),
                                 'lr': get_lr(optimizer)})
-                wandb.log({
-                    'epoch': epoch,
-                    'detection loss': total_loss_det / (iteration + 1),
-                    'se seg loss': total_loss_seg / (iteration + 1),
-                    'wl seg loss': total_loss_seg_w / (iteration + 1),
-                    'pc seg loss': total_loss_seg_pc / (iteration + 1),
-                    'total loss': total_loss / (iteration + 1),
-                    'f score se': total_f_score / (iteration + 1),
-                    'f score wl': total_f_score_w / (iteration + 1),
-                    'lr': get_lr(optimizer)
-                })
             else:
                 pbar.set_postfix(**{'detection loss': total_loss_det / (iteration + 1),
                                     'se seg loss': total_loss_seg / (iteration + 1),
                                     'wl seg loss': total_loss_seg_w / (iteration + 1),
-                                    'total loss': total_loss / (iteration + 1),
+                                    'total loss': train_total_loss / (iteration + 1),
                                     'f score se': total_f_score / (iteration + 1),
                                     'f score wl': total_f_score_w / (iteration + 1),
                                     'lr': get_lr(optimizer)})
-                wandb.log({
-                    'epoch': epoch,
-                    'detection loss': total_loss_det / (iteration + 1),
-                    'se seg loss': total_loss_seg / (iteration + 1),
-                    'wl seg loss': total_loss_seg_w / (iteration + 1),
-                    'total loss': total_loss / (iteration + 1),
-                    'f score se': total_f_score / (iteration + 1),
-                    'f score wl': total_f_score_w / (iteration + 1),
-                    'lr': get_lr(optimizer)
-                })
             pbar.update(1)
 
     if local_rank == 0:
@@ -238,6 +217,7 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
 
     for iteration, batch in enumerate(gen_val):
         if iteration >= epoch_step_val:
+            iteration -= 1
             break
 
         if is_radar_pc_seg:
@@ -321,16 +301,6 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                     'f_score se': val_f_score / (iteration + 1),
                                     'f_score wl': val_f_score_w / (iteration + 1),
                                     })
-                wandb.log({
-                    'epoch': epoch,
-                    'detection val_loss': val_loss_det / (iteration + 1),
-                    'se seg val_loss': val_loss_seg / (iteration + 1),
-                    'wl seg val_loss': val_loss_seg_w / (iteration + 1),
-                    'pc seg val_loss': val_loss_seg_pc / (iteration + 1),
-                    'val loss': val_total_loss / (iteration + 1),
-                    'f_score se': val_f_score / (iteration + 1),
-                    'f_score wl': val_f_score_w / (iteration + 1)
-                })
             else:
                 pbar.set_postfix(**{'detection val_loss': val_loss_det / (iteration + 1),
                                     'se seg val_loss': val_loss_seg / (iteration + 1),
@@ -339,15 +309,6 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                     'f_score se': val_f_score / (iteration + 1),
                                     'f_score wl': val_f_score_w / (iteration + 1),
                                     })
-                wandb.log({
-                    'epoch': epoch,
-                    'detection val_loss': val_loss_det / (iteration + 1),
-                    'se seg val_loss': val_loss_seg / (iteration + 1),
-                    'wl seg val_loss': val_loss_seg_w / (iteration + 1),
-                    'val loss': val_total_loss / (iteration + 1),
-                    'f_score se': val_f_score / (iteration + 1),
-                    'f_score wl': val_f_score_w / (iteration + 1)
-                })
             pbar.update(1)
 
     if local_rank == 0:
@@ -367,20 +328,55 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
         if is_radar_pc_seg:
             print(
                 'Total Loss: %.3f || Val Loss Det: %.3f  || Val Loss Seg: %.3f || Val Loss Seg L: %.3f || Val Loss Seg PC: %.3f' % (
-                (total_loss / epoch_step,
+                (train_total_loss / epoch_step,
                  val_loss_det / epoch_step_val,
                  val_loss_seg / epoch_step_val,
                  val_loss_seg_w / epoch_step_val,
                  val_loss_seg_pc / epoch_step_val)))
+            
+            wandb.log({
+                'epoch': epoch,
+                'detection loss': total_loss_det / epoch_step,
+                'se seg loss': total_loss_seg / epoch_step,
+                'wl seg loss': total_loss_seg_w / epoch_step,
+                'pc seg loss': total_loss_seg_pc / epoch_step,
+                'total loss': train_total_loss / epoch_step,
+                'f score se': total_f_score / epoch_step,
+                'f score wl': total_f_score_w / epoch_step,
+                'lr': get_lr(optimizer),
+                'detection val_loss': val_loss_det / epoch_step_val,
+                'se seg val_loss': val_loss_seg / epoch_step_val,
+                'wl seg val_loss': val_loss_seg_w / epoch_step_val,
+                'pc seg val_loss': val_loss_seg_pc / epoch_step_val,
+                'val loss': val_total_loss / epoch_step_val,
+                'f_score se': val_f_score / epoch_step_val,
+                'f_score wl': val_f_score_w / epoch_step_val
+            })
         else:
             print(
                 'Total Loss: %.3f || Val Loss Det: %.3f  || Val Loss Seg: %.3f || Val Loss Seg L: %.3f' % (
-                    (total_loss / epoch_step,
+                    (train_total_loss / epoch_step,
                      val_loss_det / epoch_step_val,
                      val_loss_seg / epoch_step_val,
                      val_loss_seg_w / epoch_step_val,
                      )))
-
+            
+            wandb.log({
+                'epoch': epoch,
+                'detection loss': total_loss_det / epoch_step,
+                'se seg loss': total_loss_seg / epoch_step,
+                'wl seg loss': total_loss_seg_w / epoch_step,
+                'total loss': train_total_loss / epoch_step,
+                'f score se': total_f_score / epoch_step,
+                'f score wl': total_f_score_w / epoch_step,
+                'lr': get_lr(optimizer),
+                'detection val_loss': val_loss_det / epoch_step_val,
+                'se seg val_loss': val_loss_seg / epoch_step_val,
+                'wl seg val_loss': val_loss_seg_w / epoch_step_val,
+                'val loss': val_total_loss / epoch_step_val,
+                'f_score se': val_f_score / epoch_step_val,
+                'f_score wl': val_f_score_w / epoch_step_val              
+            })
         # -----------------------------------------------#
         #   保存权值
         # -----------------------------------------------#
@@ -399,8 +395,8 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                                              val_loss_seg_w / epoch_step_val,
                                                              val_loss_seg_pc / epoch_step_val)))
 
-            if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= min(loss_history.val_loss) + min(
-                    loss_history_seg.val_loss)+ min(loss_history_seg_wl.val_loss):
+            if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= (min(loss_history.val_loss) + min(
+                    loss_history_seg.val_loss)+ min(loss_history_seg_wl.val_loss)):
                 print('Save best model to best_epoch_weights.pth')
                 torch.save(save_state_dict, os.path.join(save_dir, "best_epoch_weights.pth"))
 
@@ -413,8 +409,8 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
                                                              val_loss_seg / epoch_step_val,
                                                              val_loss_seg_w / epoch_step_val)))
 
-            if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= min(loss_history.val_loss) + min(
-                    loss_history_seg.val_loss) + min(loss_history_seg_wl.val_loss):
+            if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= (min(loss_history.val_loss) + min(
+                    loss_history_seg.val_loss) + min(loss_history_seg_wl.val_loss)):
                 print('Save best model to best_epoch_weights.pth')
                 torch.save(save_state_dict, os.path.join(save_dir, "best_epoch_weights_ep%03d.pth" % (epoch + 1)))
                 torch.save(model_train, os.path.join(save_dir, "best_epoch_weights_ep%03d.pt" % (epoch + 1)))
