@@ -203,7 +203,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir        权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir = 'logs'
+    save_dir = '../autodl-tmo/logs'
     # ------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
@@ -231,8 +231,8 @@ if __name__ == "__main__":
     # ----------------------------------------------------#
     #   获得目标检测图片路径和标签
     # ----------------------------------------------------#
-    train_annotation_path = '2007_train.txt'
-    val_annotation_path = '2007_val.txt'
+    train_annotation_path = args.data_root + '/autodl/2007_train.txt'
+    val_annotation_path = args.data_root + '/autodl/2007_val.txt'
 
     # ----------------------------------------------------#
     #   jpg图像路径
@@ -306,9 +306,9 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir_seg        分割权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir_seg = 'logs_seg'
-    save_dir_seg_wl = 'logs_seg_line'
-    save_dir_seg_pc = 'logs_seg_pc'
+    save_dir_seg = '../autodl-tmp/logs_seg'
+    save_dir_seg_wl = '../autodl-tmp/logs_seg_line'
+    save_dir_seg_pc = '../autodl-tmp/logs_seg_pc'
 
     wandb.init(
         project='Achelous++',
