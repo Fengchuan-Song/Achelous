@@ -54,6 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous/weights_origin')
     parser.add_argument('--wandb_path', type=str, default='../autodl-tmp/wandb', help='path of saving wandb files locally')
     parser.add_argument('--wandb_name', type=str, default='Achelous-0',
                         help='name of current training procedure of wandb')
@@ -164,7 +165,7 @@ if __name__ == "__main__":
     #                           Adam可以使用相对较小的UnFreeze_Epoch
     #   Unfreeze_batch_size     模型在解冻后的batch_size
     # ------------------------------------------------------------------#
-    UnFreeze_Epoch = 100
+    UnFreeze_Epoch = args.epoch
     Unfreeze_batch_size = args.bs
     # ------------------------------------------------------------------#
     #   Freeze_Train    是否进行冻结训练
@@ -203,7 +204,9 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir        权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir = '../autodl-tmo/logs'
+    save_dir = args.save_dir
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
     # ------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
@@ -247,7 +250,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     # 水岸线分割数据集路径
     # ------------------------------------------------------------------#
-    wl_seg_path = args.data_root + "/waterline/SegmentationClassPNG"
+    wl_seg_path = args.data_root + "/waterline/SegmentationClass"
 
     # ------------------------------------------------------------------#
     # 是否需要训练毫米波雷达点云分割
