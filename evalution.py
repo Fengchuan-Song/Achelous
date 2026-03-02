@@ -272,6 +272,15 @@ if __name__ == "__main__":
     log_dir_seg_wl = os.path.join(save_dir_seg_wl, "loss_" + str(time_str))
     log_dir_seg_pc = os.path.join(save_dir_seg_pc, "loss_" + str(time_str))
 
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    if not os.path.exists(log_dir_seg):
+        os.makedirs(log_dir_seg)
+    if not os.path.exists(log_dir_seg_wl):
+        os.makedirs(log_dir_seg_wl)
+    if not os.path.exists(log_dir_seg_pc):
+        os.makedirs(log_dir_seg_pc)
+
     model_train = model.train()
     # ----------------------------#
     #   多卡同步Bn
