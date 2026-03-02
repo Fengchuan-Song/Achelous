@@ -384,10 +384,13 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
             save_state_dict = ema.ema.state_dict()
         else:
             save_state_dict = model.state_dict()
+        
+        weight_save_dir = os.path.join(save_dir, 'weights')
+        os.makedirs(weight_save_dir)
 
         if is_radar_pc_seg:
             if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
-                torch.save(save_state_dict, os.path.join(save_dir,
+                torch.save(save_state_dict, os.path.join(weight_save_dir,
                                                          "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f-seg_pc_val_loss%.3f.pth" % (
                                                              epoch + 1, val_total_loss / epoch_step,
                                                              val_loss_det / epoch_step_val,
@@ -398,11 +401,11 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
             if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= (min(loss_history.val_loss) + min(
                     loss_history_seg.val_loss)+ min(loss_history_seg_wl.val_loss)):
                 print('Save best model to best_epoch_weights.pth')
-                torch.save(save_state_dict, os.path.join(save_dir, "best_epoch_weights.pth"))
+                torch.save(save_state_dict, os.path.join(weight_save_dir, "best_epoch_weights.pth"))
 
         else:
             if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
-                torch.save(save_state_dict, os.path.join(save_dir,
+                torch.save(save_state_dict, os.path.join(weight_save_dir,
                                                          "ep%03d-loss%.3f-det_val_loss%.3f-seg_val_loss%.3f-seg_wl_val_loss%.3f.pth" % (
                                                              epoch + 1, val_total_loss / epoch_step_val,
                                                              val_loss_det / epoch_step_val,
@@ -412,8 +415,8 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
             if len(loss_history.val_loss) <= 1 or (val_total_loss / epoch_step_val) <= (min(loss_history.val_loss) + min(
                     loss_history_seg.val_loss) + min(loss_history_seg_wl.val_loss)):
                 print('Save best model to best_epoch_weights.pth')
-                torch.save(save_state_dict, os.path.join(save_dir, "best_epoch_weights_ep%03d.pth" % (epoch + 1)))
-                torch.save(model_train, os.path.join(save_dir, "best_epoch_weights_ep%03d.pt" % (epoch + 1)))
+                torch.save(save_state_dict, os.path.join(weight_save_dir, "best_epoch_weights_ep%03d.pth" % (epoch + 1)))
+                torch.save(model_train, os.path.join(weight_save_dir, "best_epoch_weights_ep%03d.pt" % (epoch + 1)))
 
-        torch.save(save_state_dict, os.path.join(save_dir, "last_epoch_weights.pth"))
-        torch.save(model_train, os.path.join(save_dir, "last_epoch_weights.pt"))
+        torch.save(save_state_dict, os.path.join(weight_save_dir, "last_epoch_weights.pth"))
+        torch.save(model_train, os.path.join(weight_save_dir, "last_epoch_weights.pt"))
