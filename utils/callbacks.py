@@ -147,18 +147,6 @@ class EvalCallback():
             #   将图像输入网络当中进行预测！
             # ---------------------------------------------------------#
 
-            # ----------------- 重参数化 -------------------- #
-            for child in self.net.children():
-                if isinstance(child, nn.Module):
-                    print('deploy:', type(child).__name__)
-                    child.deploy = True
-
-            for module in self.net.modules():
-                if hasattr(module, 'reparameterize'):
-                    print('reparameterize:', type(module).__name__)
-                    module.reparameterize()
-            # ----------------------------------------------- #
-
             if self.is_radar_pc_seg:
                 # -------------------------------- 麻烦的点云读取 ---------------------------------- #
                 radar_pc_file = pd.read_csv(os.path.join(self.radar_pc_seg_path, image_id + '.csv'), index_col=0)
@@ -229,6 +217,19 @@ class EvalCallback():
             if not os.path.exists(os.path.join(self.map_out_path, "detection-results")):
                 os.makedirs(os.path.join(self.map_out_path, "detection-results"))
             print("Get map.")
+
+            # ----------------- 重参数化 -------------------- #
+            for child in self.net.children():
+                if isinstance(child, nn.Module):
+                    print('deploy:', type(child).__name__)
+                    child.deploy = True
+
+            for module in self.net.modules():
+                if hasattr(module, 'reparameterize'):
+                    print('reparameterize:', type(module).__name__)
+                    module.reparameterize()
+            # ----------------------------------------------- #
+
             for annotation_line in tqdm(self.val_lines):
                 line = annotation_line.split()
 
