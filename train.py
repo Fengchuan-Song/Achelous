@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous/weights_origin')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous')
     parser.add_argument('--wandb_path', type=str, default='../autodl-tmp/wandb', help='path of saving wandb files locally')
     parser.add_argument('--wandb_name', type=str, default='Achelous-0',
                         help='name of current training procedure of wandb')
@@ -202,11 +202,11 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     save_period = 5
     # ------------------------------------------------------------------#
-    #   save_dir        权值与日志文件保存的文件夹
+    #   weight_save_dir        权值保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir = args.save_dir
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    weight_save_dir = os.path.join(args.save_dir, 'weights')
+    if not os.path.exists(weight_save_dir):
+        os.makedirs(weight_save_dir)
     # ------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
@@ -309,9 +309,10 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir_seg        分割权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir_seg = '../autodl-tmp/logs_seg'
-    save_dir_seg_wl = '../autodl-tmp/logs_seg_line'
-    save_dir_seg_pc = '../autodl-tmp/logs_seg_pc'
+    save_dir = os.path.join(args.save_dir, 'log_detection')
+    save_dir_seg = os.path.join(args.save_dir, 'logs_seg')
+    save_dir_seg_wl = os.path.join(args.save_dir, 'logs_seg_line')
+    save_dir_seg_pc = os.path.join(args.save_dir, 'logs_seg_pc')
 
     wandb.init(
         project='Achelous++',
@@ -714,7 +715,7 @@ if __name__ == "__main__":
             fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history_seg, loss_history_seg_wl,
                           loss_history_seg_pc, eval_callback, eval_callback_seg, eval_callback_seg_wl,
                           eval_callback_seg_pc, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val,
-                          UnFreeze_Epoch, Cuda, fp16, scaler, save_period, save_dir, dice_loss, focal_loss, cls_weights,
+                          UnFreeze_Epoch, Cuda, fp16, scaler, save_period, weight_save_dir, dice_loss, focal_loss, cls_weights,
                           cls_weights_wl, num_classes_seg, local_rank, is_radar_pc_seg)
 
             if distributed:

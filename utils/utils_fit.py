@@ -14,7 +14,7 @@ import wandb
 
 
 def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history_seg, loss_history_seg_wl, loss_history_seg_pc, eval_callback, eval_callback_seg, eval_callback_seg_w, eval_callback_seg_pc, optimizer, epoch, epoch_step,
-                  epoch_step_val, gen, gen_val, Epoch, cuda, fp16, scaler, save_period, save_dir, dice_loss, focal_loss, cls_weights, cls_weights_wl, num_class_seg, local_rank=0, is_radar_pc_seg=False):
+                  epoch_step_val, gen, gen_val, Epoch, cuda, fp16, scaler, save_period, weight_save_dir, dice_loss, focal_loss, cls_weights, cls_weights_wl, num_class_seg, local_rank=0, is_radar_pc_seg=False):
     total_loss_det = 0
     total_loss_seg = 0
     total_loss_seg_w = 0
@@ -384,9 +384,6 @@ def fit_one_epoch(model_train, model, ema, yolo_loss, loss_history, loss_history
             save_state_dict = ema.ema.state_dict()
         else:
             save_state_dict = model.state_dict()
-        
-        weight_save_dir = os.path.join(save_dir, 'weights')
-        os.makedirs(weight_save_dir)
 
         if is_radar_pc_seg:
             if (epoch + 1) % save_period == 0 or epoch + 1 == Epoch:
