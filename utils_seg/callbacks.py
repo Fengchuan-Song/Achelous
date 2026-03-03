@@ -108,6 +108,7 @@ class EvalCallback():
         self.radar_pc_seg_features = radar_pc_seg_features
         self.radar_pc_seg_label = radar_pc_seg_label
         self.radar_pc_num = radar_pc_num
+        self.class_name = ["background", "pier", "buoy", "sailor", "ship", "boat", "vessel", "kayak", "free-space"]
 
         self.image_ids = [os.path.splitext(image_id.split('/')[-1].split(' ')[0])[0]for image_id in image_ids]
 
@@ -221,13 +222,24 @@ class EvalCallback():
                 image.save(os.path.join(pred_dir, image_id + ".png"))
 
             print("Calculate miou.")
-            _, IoUs, _, _ = compute_mIoU(gt_dir, pred_dir, self.image_ids, self.num_classes, None)  # 执行计算mIoU的函数
+            _, IoUs, _, _ = compute_mIoU(gt_dir, pred_dir, self.image_ids, self.num_classes, self.class_name)  # 执行计算mIoU的函数
             temp_miou = np.nanmean(IoUs) * 100
+            miou_driverable_area = np.nanmean([IoUs[0], IoUs[-1]]) * 100
+            miou_object = np.nanmean(IoUs[:-1]) * 100
 
             self.mious.append(temp_miou)
             self.epoches.append(epoch)
 
             with open(os.path.join(self.log_dir, "epoch_miou.txt"), 'a') as f:
+                for index in range(len(self.class_name)):
+                    f.write(f"{self.class_name[index]}: {IoUs[index] * 100}")
+                    f.write('\n')
+                
+                f.write(f"mIoU Driverable Area: {miou_driverable_area}")
+                f.write('\n')
+                f.write(f"mIoU Object: {miou_object}")
+                f.write('\n')
+
                 f.write(str(temp_miou))
                 f.write("\n")
 
