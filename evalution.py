@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--pc_model", type=str, default='pn')
     parser.add_argument("--spp", type=str, default='True')
     parser.add_argument("--data_root", type=str, default='../autodl-tmp/WaterScenes')
-    parser.add_argument("--save_dir", type=str, default='/data/Achelous/weights_origin')
+    parser.add_argument("--save_dir", type=str, default='/data/Achelous')
 
     args = parser.parse_args()
 
@@ -102,12 +102,6 @@ if __name__ == "__main__":
     #   save_period     多少个epoch保存一次权值
     # ------------------------------------------------------------------#
     save_period = 5
-    # ------------------------------------------------------------------#
-    #   save_dir        权值与日志文件保存的文件夹
-    # ------------------------------------------------------------------#
-    save_dir = args.save_dir
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
     # ------------------------------------------------------------------#
     #   eval_flag       是否在训练时进行评估，评估对象为验证集
     #                   安装pycocotools库后，评估体验更佳。
@@ -193,9 +187,10 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------#
     #   save_dir_seg        分割权值与日志文件保存的文件夹
     # ------------------------------------------------------------------#
-    save_dir_seg = '../autodl-tmp/logs_seg'
-    save_dir_seg_wl = '../autodl-tmp/logs_seg_line'
-    save_dir_seg_pc = '../autodl-tmp/logs_seg_pc'
+    save_dir = os.path.join(args.save_dir, 'log_detection')
+    save_dir_seg = os.path.join(args.save_dir, 'logs_seg')
+    save_dir_seg_wl = os.path.join(args.save_dir, 'logs_seg_line')
+    save_dir_seg_pc = os.path.join(args.save_dir, 'logs_seg_pc')
 
     # ======================================================================================= #
 
